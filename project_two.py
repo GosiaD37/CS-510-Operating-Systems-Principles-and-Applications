@@ -5,117 +5,115 @@ Date:    January 2026
 
 Description:
 This program simulates operating system performance monitoring and optimization
-by displaying disk usage, CPU statistics, memory management details, threading,
-and error handling using Python and psutil.
+by displaying disk usage, CPU statistics, memory management details, threading 
+lifecycles, and error handling using Python and psutil.
 """
 
 import os
 import psutil
 import sys
 import threading
+import time
 
 def printBlankLines(lines: int):
+    """Utility to print blank lines for formatted output."""
     for _ in range(lines):
         print("")
 
-def printMsg1(num):
-    print("Thread 1 cubed:", num ** 3)
+def threadTaskOne(num):
+    """Function for Thread 1 to calculate a cube and display its unique ID."""
+    # Requirement 4A: Display execution state and Thread ID
+    thread_id = threading.get_ident()
+    print(f"[EXECUTION] Thread 1 (ID: {thread_id}) is calculating {num}^3...")
+    time.sleep(1)  # Simulate workload
+    print(f"Thread 1 Result: {num ** 3}")
 
-def printMsg2(num):
-    print("Thread 2 squared:", num ** 2)
+def threadTaskTwo(num):
+    """Function for Thread 2 to calculate a square and display its unique ID."""
+    # Requirement 4A: Display execution state and Thread ID
+    thread_id = threading.get_ident()
+    print(f"[EXECUTION] Thread 2 (ID: {thread_id}) is calculating {num}^2...")
+    time.sleep(1)  # Simulate workload
+    print(f"Thread 2 Result: {num ** 2}")
 
-"""
-Displays disk usage statistics and file information.
-"""
 def getFileDiskUsageStatistics() -> None:
-    print("Getting Disk Statistics")
-
-    # Disk usage
+    """Queries disk usage and reads file attributes for formatted output."""
+    print("--- Disk Resource Usage ---")
+    
+    # Requirement 1Ai: Total and free disk space
     disk = psutil.disk_usage('/')
     print(f"Total Disk Space: {disk.total / (1024 ** 3):.2f} GB")
-    print(f"Free Disk Space: {disk.free / (1024 ** 3):.2f} GB")
+    print(f"Free Disk Space:  {disk.free / (1024 ** 3):.2f} GB")
 
-    # File statistics
+    # Requirement 1Aii: Read file attributes and size
     file_name = "projecttwo.txt"
-
-    # Create file if it does not exist
     if not os.path.exists(file_name):
         with open(file_name, "w") as file:
-            file.write("Sample data for disk usage testing.")
+            file.write("GlobalFinTech Inc. sample data for optimization testing.")
 
     file_stats = os.stat(file_name)
-    print(f"File Name: {file_name}")
-    print(f"File Size: {file_stats.st_size} bytes")
-    print(f"Last Modified: {file_stats.st_mtime}")
+    print(f"File Name:      {file_name}")
+    print(f"File Size:      {file_stats.st_size} bytes")
+    print(f"Last Modified:  {file_stats.st_mtime}")
+    printBlankLines(1)
 
-    printBlankLines(2)
-
-"""
-Displays system memory and virtual memory statistics.
-"""
-def getMemoryStatistics() -> None:
-    print("Getting Memory Statistics")
-
-    mem = psutil.virtual_memory()
-    print(f"Total Memory: {mem.total / (1024 ** 3):.2f} GB")
-    print(f"Used Memory: {mem.used / (1024 ** 3):.2f} GB")
-    print(f"Available Memory: {mem.available / (1024 ** 3):.2f} GB")
-    print(f"Memory Usage Percentage: {mem.percent}%")
-
-    printBlankLines(2)
-
-"""
-Displays CPU statistics including usage and core count.
-"""
 def getCpuStatistics() -> None:
-    print("Getting CPU Statistics")
+    """Reads and formats CPU size and usage statistics."""
+    print("--- CPU Resource Statistics ---")
+    # Requirement 2A: CPU size (cores) and usage
+    print(f"CPU Cores (Logical): {psutil.cpu_count(logical=True)}")
+    print(f"Current CPU Usage:   {psutil.cpu_percent(interval=1)}%")
+    printBlankLines(1)
 
-    print(f"CPU Cores: {psutil.cpu_count(logical=True)}")
-    print(f"CPU Usage: {psutil.cpu_percent(interval=1)}%")
+def getMemoryStatistics() -> None:
+    """Reads and formats total, used, and virtual memory usage."""
+    print("--- Memory Resource Usage ---")
+    mem = psutil.virtual_memory()
+    swap = psutil.swap_memory()
+    
+    # Requirement 3A: Total, Used, and Virtual (Swap) Memory
+    print(f"Total Physical Memory: {mem.total / (1024 ** 3):.2f} GB")
+    print(f"Used Physical Memory:  {mem.used / (1024 ** 3):.2f} GB")
+    print(f"Virtual Memory (Swap): {swap.total / (1024 ** 3):.2f} GB")
+    print(f"Memory Usage Percent:  {mem.percent}%")
+    printBlankLines(1)
 
-    printBlankLines(2)
-
-"""
-Demonstrates concurrency using threading.
-"""
 def showThreadingExample() -> None:
-    print("Demonstrating Threading")
+    """Demonstrates thread creation, execution, and destruction lifecycle."""
+    print("--- Concurrency and Threading ---")
+    
+    # Requirement 4A: Creation output
+    print("[CREATION] Initializing two separate threads...")
+    t1 = threading.Thread(target=threadTaskOne, args=(5,))
+    t2 = threading.Thread(target=threadTaskTwo, args=(10,))
 
-    thread1 = threading.Thread(target=printMsg1, args=(3,))
-    thread2 = threading.Thread(target=printMsg2, args=(4,))
+    # Start threads
+    t1.start()
+    t2.start()
 
-    print("Starting Threads")
-    thread1.start()
-    thread2.start()
+    # Requirement 4A: Wait for threads to finish (Destroyed state)
+    t1.join()
+    t2.join()
+    print("[DESTROYED] All threads have finished and resources are released.")
+    printBlankLines(1)
 
-    thread1.join()
-    thread2.join()
-
-    print("Threads Completed")
-    printBlankLines(2)
-
-"""
-Demonstrates error handling using a divide-by-zero exception.
-"""
 def showErrorHandling() -> None:
-    print("Demonstrating Error Handling")
-
+    """Demonstrates error handling for system exceptions (divide by zero)."""
+    print("--- Error/Fault Handling ---")
+    # Requirement 5A: Cause an error, catch it, and state it clearly
     try:
-        result = 10 / 0
-    except ZeroDivisionError:
-        print("Error: Division by zero occurred.")
-    except MemoryError:
-        print("Memory Error!")
-    else:
-        print("Result:", result)
+        print("Attempting to divide 100 by 0...")
+        result = 100 / 0
+    except ZeroDivisionError as e:
+        print(f"CAUGHT ERROR: {e} (Division by zero is not allowed).")
     finally:
-        print("Execution complete.")
-
-    printBlankLines(2)
+        print("System remains stable; error was handled successfully.")
+    printBlankLines(1)
 
 def main() -> int:
-    print("Starting Program")
-    print("=============================")
+    """Main execution entry point for the OS simulator."""
+    print("GlobalFinTech OS Optimization Simulator Starting")
+    print("================================================")
 
     getFileDiskUsageStatistics()
     getCpuStatistics()
@@ -123,6 +121,7 @@ def main() -> int:
     showThreadingExample()
     showErrorHandling()
 
+    print("Simulator execution complete.")
     return 0
 
 if __name__ == '__main__':
